@@ -1,14 +1,15 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { ExamplePlatformAccessory } from './platformAccessory';
+import { TempSensorAccessory } from './platformAccessory';
+import { HeaterCoolerAccessory } from './platformAccessory';
 
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
  * parse the user config and discover/register accessories with Homebridge.
  */
-export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
+export class SZHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
@@ -28,6 +29,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
+      
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
     });
@@ -54,63 +56,91 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // EXAMPLE ONLY
     // A real plugin you would discover accessories from the local network, cloud services
     // or a user-defined array in the platform config.
-    const exampleDevices = [
-      {
-        exampleUniqueId: 'ABCD',
-        exampleDisplayName: 'Bedroom',
-      },
-      {
-        exampleUniqueId: 'EFGH',
-        exampleDisplayName: 'Kitchen',
-      },
-    ];
 
-    // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of exampleDevices) {
+    const TempSensorID = 'SZ00001';
+    const TempSensorName = 'TinkerTemp';
 
-      // generate a unique id for the accessory this should be generated from
-      // something globally unique, but constant, for example, the device serial
-      // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
+    const HeaterCoolerID = 'SZ00002';
+    const HeaterCoolerName = 'TinkerHC';
 
-      // see if an accessory with the same uuid has already been registered and restored from
-      // the cached devices we stored in the `configureAccessory` method above
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+    // generate a unique id for the accessory this should be generated from
+    // something globally unique, but constant, for example, the device serial
+    // number or MAC address
+    const TempSensorUUID = this.api.hap.uuid.generate(TempSensorID);
+    const HeaterCoolerUUID = this.api.hap.uuid.generate(HeaterCoolerID);
 
-      if (existingAccessory) {
-        // the accessory already exists
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+    // see if an accessory with the same uuid has already been registered and restored from
+    // the cached devices we stored in the `configureAccessory` method above
+    const existingTempSensor = this.accessories.find(accessory => accessory.UUID === TempSensorUUID);
+    const existingHeaterCooler = this.accessories.find(accessory => accessory.UUID === HeaterCoolerUUID);
 
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        // existingAccessory.context.device = device;
-        // this.api.updatePlatformAccessories([existingAccessory]);
+    if (existingHeaterCooler) {
+      // the accessory already exists
+      this.log.info('Restoring existing accessory from cache:', existingHeaterCooler.displayName);
 
-        // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, existingAccessory);
+      // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+      // existingAccessory.context.device = device;
+      // this.api.updatePlatformAccessories([existingAccessory]);
 
-      } else {
-        // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.exampleDisplayName);
+      // create the accessory handler for the restored accessory
+      // this is imported from `platformAccessory.ts`
+      new HeaterCoolerAccessory(this, existingHeaterCooler);
 
-        // create a new accessory
-        const accessory = new this.api.platformAccessory(device.exampleDisplayName, uuid);
+    } else {
+      // the accessory does not yet exist, so we need to create it
+      this.log.info('Adding new accessory:', HeaterCoolerName);
 
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
-        accessory.context.device = device;
+      // create a new accessory
+      const accessory = new this.api.platformAccessory(HeaterCoolerName, HeaterCoolerUUID);
 
-        // create the accessory handler for the newly create accessory
-        // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, accessory);
+      // store a copy of the device object in the `accessory.context`
+      // the `context` property can be used to store any data about the accessory you may need
+      accessory.context.deviceID = HeaterCoolerID;
+      accessory.context.deviceName = HeaterCoolerName;
 
-        // link the accessory to your platform
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-      }
+      // create the accessory handler for the newly create accessory
+      // this is imported from `platformAccessory.ts`
+      new HeaterCoolerAccessory(this, accessory);
 
-      // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-      // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      // link the accessory to your platform
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
+
+    if (existingTempSensor) {
+      // the accessory already exists
+      this.log.info('Restoring existing accessory from cache:', existingTempSensor.displayName);
+
+      // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+      // existingAccessory.context.device = device;
+      // this.api.updatePlatformAccessories([existingAccessory]);
+
+      // create the accessory handler for the restored accessory
+      // this is imported from `platformAccessory.ts`
+      new TempSensorAccessory(this, existingTempSensor);
+
+    } else {
+      // the accessory does not yet exist, so we need to create it
+      this.log.info('Adding new accessory:', TempSensorName);
+
+      // create a new accessory
+      const accessory = new this.api.platformAccessory(TempSensorName, TempSensorUUID);
+
+      // store a copy of the device object in the `accessory.context`
+      // the `context` property can be used to store any data about the accessory you may need
+      accessory.context.deviceID = TempSensorID;
+      accessory.context.deviceName = TempSensorName;
+
+      // create the accessory handler for the newly create accessory
+      // this is imported from `platformAccessory.ts`
+      new TempSensorAccessory(this, accessory);
+
+      // link the accessory to your platform
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    }
+
+    // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+    // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    
 
   }
 }
